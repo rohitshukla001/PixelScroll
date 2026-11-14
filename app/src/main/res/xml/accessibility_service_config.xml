@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The scroll engine reads YouTube's window (screen check, seek bar), takes screenshots of the
+    progress bar and sends the swipe gesture. It gets scroll events from YouTube only: they tell
+    it a new Short is on screen. It needs no other events, and no other app's.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:accessibilityEventTypes="typeViewScrolled"
+    android:packageNames="com.google.android.youtube"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagReportViewIds|flagIncludeNotImportantViews"
+    android:canPerformGestures="true"
+    android:canRetrieveWindowContent="true"
+    android:canTakeScreenshot="true"
+    tools:ignore="UnusedAttribute"
+    android:description="@string/accessibility_service_description"
+    android:notificationTimeout="100" />

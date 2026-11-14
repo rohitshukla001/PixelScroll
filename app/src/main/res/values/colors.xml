@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Window background before Compose draws: the design token "background". -->
+    <color name="background">#FFFAFAFA</color>
+    <!-- App icon ground: the design token "primary" (light). -->
+    <color name="ic_launcher_background">#FF09090B</color>
+</resources>

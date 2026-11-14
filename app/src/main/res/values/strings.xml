@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">Pixel Scroll</string>
+    <string name="accessibility_service_description">Pixel Scroll swipes to the next video in YouTube Shorts. It acts only on that screen and sends nothing off your phone.</string>
+
+    <!-- Welcome -->
+    <string name="tagline">Watch YouTube Shorts hands-free.</string>
+    <string name="get_started">Get started</string>
+    <string name="credit_lead">Designed and Developed by</string>
+    <string name="credit_name">Rohit Shukla</string>
+    <string name="open_author_page">Open Rohit Shukla\'s page</string>
+
+    <!-- Accessibility access -->
+    <string name="back">Back</string>
+    <string name="access_title">Turn on Accessibility access</string>
+    <string name="access_lead">Pixel Scroll needs it to see when YouTube Shorts is open and to swipe to the next video.</string>
+    <string name="access_path">Settings &gt; Accessibility &gt; Pixel Scroll</string>
+    <string name="use_pixel_scroll">Use Pixel Scroll</string>
+    <string name="what_it_does">What it does</string>
+    <string name="does_sees_app">Sees which app is open</string>
+    <string name="does_reads_progress">Reads the video progress bar</string>
+    <string name="does_swipes">Sends a swipe gesture</string>
+    <string name="what_it_never_does">What it never does</string>
+    <string name="never_messages">Read your messages</string>
+    <string name="never_personal_data">Collect personal data</string>
+    <string name="never_send">Send anything off the phone</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="not_now">Not now</string>
+    <string name="access_retry">On some phones the switch turns itself off the first time. If it does, turn it on again.</string>
+
+    <!-- Home -->
+    <string name="auto_scroll_eyebrow">AUTO-SCROLL</string>
+    <string name="auto_scroll_on">Auto-scroll is ON</string>
+    <string name="auto_scroll_off">Auto-scroll is OFF</string>
+    <string name="hint_on">Next video when this one ends</string>
+    <string name="hint_off">Turn it on, then open YouTube Shorts</string>
+    <string name="hint_no_service">Turn on Accessibility access to start</string>
+    <string name="service_connected">Accessibility service connected</string>
+    <string name="service_off">Accessibility service is off</string>
+    <string name="service_off_detail">Auto-scroll cannot run</string>
+    <string name="fix">Fix</string>
+    <string name="fallback_delay">Fallback delay</string>
+    <string name="fallback_delay_hint">Used when a Short\'s length can\'t be read</string>
+    <string name="fallback_delay_a11y">Fallback delay in seconds</string>
+    <string name="seconds">%1$d s</string>
+    <string name="delay_set">Delay set to %1$d s.</string>
+</resources>
