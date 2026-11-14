@@ -17,7 +17,7 @@ data class TargetScreen(
  * Every view id the app depends on lives here, so an app update means changing one file.
  * The package name is also in res/xml/accessibility_service_config.xml (packageNames).
  *
- * YouTube ids are confirmed on a phone (docs/progress-detection-test.md, 13 Nov 2026).
+ * YouTube ids were confirmed on a vivo phone, Android 16, on 13 Nov 2026.
  */
 object TargetScreens {
     val all: List<TargetScreen> = listOf(

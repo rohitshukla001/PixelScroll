@@ -186,7 +186,13 @@ YouTube can rename view ids or move the bar. All ids live in two files:
 
 The package name is also in `accessibility_service_config.xml`. If the bar's colour changes, update `ProgressBarReader.isLight` and its tests.
 
-`docs/progress-detection-test.md` records how the current ids and the bar colour were found on a phone (13 Nov 2026).
+The current values were found on a vivo I2214 (Android 16, 1080 x 2400) on 13 Nov 2026:
+
+- `reel_recycler` and `reel_player_page_container` are on every Shorts screen.
+- The seek bar is a `SeekBar` with no id inside `reel_time_bar`, bounds about `[0,2085][1080,2217]`. Its description holds the position and the length.
+- `reel_progress_bar` is about `[22,2146][1058,2152]` (6 px high). It is visible in screenshots but rarely marked visible in the node tree, so the engine usually reads the bar from the seek bar's middle band.
+- The played part is light grey: every colour channel above 150 and within 40 of each other.
+- YouTube's media session reports length 0 for Shorts, so it can't be used.
 
 ## UI
 

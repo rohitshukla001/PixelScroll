@@ -4,7 +4,7 @@ package dev.rohitshukla.pixelscroll.progress
  * Reads how far a thin progress bar is filled, from screenshot pixels. Pure Kotlin.
  *
  * YouTube Shorts draw the played part as a light-grey line, 6 px high at 1080 x 2400
- * (docs/progress-detection-test.md). For each candidate row the reader takes the longest run
+ * (seen on a vivo phone, 13 Nov 2026). For each candidate row the reader takes the longest run
  * of light pixels that starts at the bar's left edge. A run only counts when the rows a few
  * pixels above and below are mostly not light, so bright video content is not mistaken for
  * the bar.

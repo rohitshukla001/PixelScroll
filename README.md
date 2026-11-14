@@ -43,7 +43,7 @@ Each debug build also copies the APK to `apk/PixelScroll.apk`, replacing the old
 - [Engineering handbook](docs/engineering-handbook.md): rules, workflow, checks and emulator testing.
 - [Performance](docs/performance.md): what the app costs the phone, and what is not measured yet.
 
-History from the first release: [implementation plan](docs/implementation-plan.md), [tasks](docs/first-release-tasks.md), [progress detection test](docs/progress-detection-test.md).
+History from the first release: [implementation plan](docs/implementation-plan.md).
 
 ## Design
 

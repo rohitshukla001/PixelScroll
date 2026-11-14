@@ -5,7 +5,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 
 /**
  * One pass over the active window: its view ids (for the screen check), YouTube's seek bar
- * (length text and bounds) and progress bar bounds (docs/progress-detection-test.md).
+ * (length text and bounds) and progress bar bounds.
  */
 class ScreenScan private constructor(
     val packageName: String,

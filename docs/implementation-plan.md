@@ -4,7 +4,7 @@
 
 Pixel Scroll is built in six phases. Phase 0 is a test that decides how the app knows when a video ends. Every later phase depends on its result.
 
-The work is tracked as 10 tasks in [first-release-tasks.md](first-release-tasks.md).
+The work was tracked as 10 tasks.
 
 Sources: the [feature list](https://claude.ai/artifact/PZrsvE9YjKxX2hm3URMSgt) and the Pixel Scroll design system.
 
@@ -67,7 +67,7 @@ Goal: for YouTube Shorts and Instagram Reels, find the cheapest source that dete
    - active media sessions, their duration and playback position;
    - one screenshot per second, saved to the app's files folder.
 4. Check each source against the logs, in the order of the table above. For sources 3 and 4, test the detection on the saved screenshots.
-5. Write the findings in `docs/progress-detection-test.md`: for each app, which source works, its view ids or pixel regions, how often it updates, and its battery cost.
+5. Write down the findings: for each app, which source works, its view ids or pixel regions, how often it updates, and its battery cost.
 
 **Done when:** for each app, the findings name one working source, or say that only the fixed delay works.
 
