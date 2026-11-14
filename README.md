@@ -27,6 +27,8 @@
 
 Then open YouTube Shorts and watch. The full walkthrough is in the [user guide](docs/user-guide.md).
 
+The APK is a debug build signed on the developer's computer. It works like any other APK; updates install over it as long as they come from this repo.
+
 ## Privacy
 
 Pixel Scroll has **no internet permission**, so it can't send anything off your phone. It collects no data, keeps no history and shows no ads. It checks which app is in front, and reads only YouTube's screen, to find the Short's length and progress bar. It never reads other apps' screens. Its only stored data is two settings: auto-scroll on or off, and the fallback delay.

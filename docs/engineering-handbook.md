@@ -112,13 +112,14 @@ The test phone is a vivo I2214 on Android 16 (API 36), 1080 x 2400.
 | The switch needs two tries on the vivo phone | Not reproduced on the emulator; needs the phone over USB |
 | Release signing | Not used: the owner chose the debug-signed APK. Updates must be built on the same computer |
 | Event and package filtering in the accessibility config | Checked on the emulator only (14 Nov 2026) |
+| Library updates | The newest AndroidX and Compose versions need Android Gradle Plugin 9.1+ and compileSdk 37: a separate migration (Gradle 9, new SDK) to do and test on its own |
 
 ## Releasing
 
 1. Raise `versionCode` by 1 and set `versionName` in `app/build.gradle.kts`.
 2. Run the full checks.
 3. Build the APK: `./gradlew assembleDebug` (copies it to `apk/PixelScroll.apk`).
-4. Install it on the emulator and on the phone; check setup, Home and a few Shorts.
+4. Run the fake Shorts test on the emulator (see "Testing the engine without YouTube"): 3 minutes, every Short swiped at its end, plus one Short that jumps forward and one that rewinds. Then install on the phone and check setup, Home and a few Shorts.
 5. Commit and push to `main`. The README's download link points to `apk/PixelScroll.apk` on `main`.
 
 The APK is signed with the debug key of the computer that builds it. Android installs an update only over an app signed with the same key, so build releases on the same computer; a build from another computer needs users to uninstall first.

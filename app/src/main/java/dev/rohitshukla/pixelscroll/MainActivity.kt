@@ -59,7 +59,8 @@ class MainActivity : ComponentActivity(), AppController {
             PixelScrollTheme {
                 PixelScrollApp(
                     setupComplete = setupState.isComplete,
-                    serviceConnected = serviceEnabled && serviceRunning,
+                    serviceEnabled = serviceEnabled,
+                    serviceRunning = serviceRunning,
                     settings = settings,
                     controller = this,
                 )

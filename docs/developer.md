@@ -101,6 +101,8 @@ Each tick, the engine gets the active window's root node. It stops at once if th
 - the visible `SeekBar` inside `reel_time_bar`, with its description and bounds;
 - the visible `reel_progress_bar` bounds, when YouTube shows it.
 
+Before the walk, one search for the Shorts list (`findAccessibilityNodeInfosByViewId`) stops it at once on YouTube's other screens.
+
 `TargetScreenDetector` returns `YOUTUBE_SHORTS` when the package is exactly `com.google.android.youtube` and one of the marker ids is on screen.
 
 ### 2. How long is the Short?
@@ -113,7 +115,7 @@ The seek bar's description holds the position and the length, for example "0 min
 
 YouTube draws the played part as a light-grey line about 6 px high. The engine takes a screenshot (Android 11+), cuts out the bar's area, and `ProgressBarReader` finds the longest light-grey run from the left edge. A run counts only when the rows above and below are mostly not light, so bright video content is not mistaken for the bar. `MedianOfThree` keeps the middle of the last three readings.
 
-To save battery, the engine reads the bar only from 5 s before the expected end (`VideoState.READ_LEAD_MS`). It reads the bar for the whole first Short after Shorts opens, because that Short may already be part-way through.
+The engine times its readings from where the video really is, not from the clock (`VideoState.onProgressRead`). Each reading gives the time left: the length times the unread part of the bar. It reads every 3 s (`SAMPLE_MS`) until 5 s are left (`READ_LEAD_MS`), then every second. When you jump forward or back in a Short, the next reading sees it and the end moves with it.
 
 ### 4. When to swipe
 
@@ -122,10 +124,10 @@ To save battery, the engine reads the bar only from 5 s before the expected end 
 | Reason | When |
 | --- | --- |
 | `END_REACHED` | The smoothed fill is 0.97 or more |
-| `LOOPED` | The fill drops by 0.5 or more (the Short started again) |
+| `LOOPED` | The fill was 0.8 or more and is now 0.15 or less (the Short started again). A rewind to the middle doesn't count |
 | `FALLBACK_DELAY` | No progress reading for 3 s, and the delay has passed: the length plus 1 s when known, else the user's fallback delay |
 
-Readings come once a second, so the last part of a Short often falls between two readings. `EndPredictor` works out the time left from the latest reading and the length. When the end comes before the next reading, the engine schedules the swipe 250 ms before the end.
+Readings come once a second near the end, so the last part of a Short often falls between two readings. `EndPredictor` works out the time left from the latest reading and the length. When the end comes before the next reading, the engine schedules the swipe 250 ms before the end. Just before it fires, it takes one more reading: if the bar went back (the user rewound), it cancels and times the end again.
 
 A paused Short is not swiped while its bar is being read: the reading stays the same, so no reason applies.
 
@@ -133,7 +135,7 @@ After one `SwipeNow`, the decider waits for the next `onNewVideo`. One Short nev
 
 ### 5. The swipe
 
-`SwipeDispatcher` sends a straight swipe up the middle of YouTube's window, from 80% to 20% of its height, in 250 ms. If Android cancels the gesture, the engine tries once more for the same Short.
+`SwipeDispatcher` sends a straight swipe up the middle of YouTube's window, from 80% to 20% of its height, in 250 ms. If Android cancels the gesture, the engine tries once more for the same Short. If Android refuses it outright, the engine sends it again on the next tick without restarting the Short's timing.
 
 A new Short starts when one of these happens:
 
@@ -143,7 +145,9 @@ A new Short starts when one of these happens:
 
 ### 6. Errors and status
 
-Each tick and each screenshot reading runs inside a `try`/`catch`. One failure skips that second instead of ending the service. After 5 failed seconds in a row, the engine reports itself as not running and Home turns the status row red. The row goes green again after a clean second.
+Each tick and each screenshot reading runs inside a `try`/`catch`. One failure skips that second instead of ending the service. After 5 failed seconds in a row, the engine reports itself as not running and Home shows "Auto-scroll stopped working" in red. The row goes green again after a clean second.
+
+A screenshot that gets no answer within 3 s is given up, so readings never stop for good. While screenshots fail after good readings, the fallback delay is held for up to 10 s, so a paused Short isn't swiped.
 
 `ServiceStatus` holds two facts:
 

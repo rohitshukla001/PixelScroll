@@ -59,6 +59,13 @@ class ProgressTest {
     }
 
     @Test
+    fun `reads the length when the digits are not 0 to 9`() {
+        // Arabic-Indic and Devanagari digits.
+        assertEquals(35, SeekBarDescription.durationSec("٠ دقيقة ٢ ثانية من ٠ دقيقة ٣٥ ثانية"))
+        assertEquals(35, SeekBarDescription.durationSec("० मिनट २ सेकंड / ० मिनट ३५ सेकंड"))
+    }
+
+    @Test
     fun `median of three drops a single wrong reading`() {
         val m = MedianOfThree()
         assertNull(m.add(0.10f))

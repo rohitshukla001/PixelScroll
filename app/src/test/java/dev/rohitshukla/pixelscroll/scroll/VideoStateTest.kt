@@ -47,20 +47,44 @@ class VideoStateTest {
     }
 
     @Test
-    fun `reads progress only near the end of a Short with a known length`() {
+    fun `reads progress every 3 s mid-Short and every second near the end`() {
         state.start(0)
         assertTrue(state.shouldReadProgress(0))
-        state.onLength(30, 500)
-        assertFalse(state.shouldReadProgress(10_000))
-        assertFalse(state.shouldReadProgress(24_999))
-        assertTrue(state.shouldReadProgress(25_000))
+        state.onLength(30, 0)
+        state.onProgressRead(0.2f, 1_000) // 24 s left
+        assertFalse(state.shouldReadProgress(3_000))
+        assertTrue(state.shouldReadProgress(4_000))
+        state.onProgressRead(0.85f, 3_000) // 4.5 s left: inside the last 5 s
+        assertTrue(state.shouldReadProgress(4_000))
     }
 
     @Test
-    fun `reads progress for the whole first Short after Shorts opens`() {
-        state.start(0, readFromStart = true)
-        state.onLength(30, 500)
-        assertTrue(state.shouldReadProgress(2_000))
+    fun `a jump forward moves the reading window to the real end`() {
+        state.start(0)
+        state.onLength(60, 0)
+        state.onProgressRead(0.1f, 2_000)
+        // The user jumps to 95%: the next sample sees it and reading goes every second.
+        state.onProgressRead(0.95f, 4_000)
+        assertTrue(state.shouldReadProgress(5_000))
+    }
+
+    @Test
+    fun `a jump back moves the reading window later`() {
+        state.start(0)
+        state.onLength(30, 0)
+        state.onProgressRead(0.9f, 26_000) // near the end: every second
+        assertTrue(state.shouldReadProgress(27_000))
+        state.onProgressRead(0.3f, 27_000) // rewound to 30%: back to every 3 s
+        assertFalse(state.shouldReadProgress(29_000))
+        assertTrue(state.shouldReadProgress(30_000))
+    }
+
+    @Test
+    fun `a reading that lands just after its tick still reads on the tick 3 s later`() {
+        state.start(0)
+        state.onLength(30, 0)
+        state.onProgressRead(0.2f, 1_030)
+        assertTrue(state.shouldReadProgress(4_000))
     }
 
     @Test

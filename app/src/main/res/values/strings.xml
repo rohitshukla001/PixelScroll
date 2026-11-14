@@ -37,6 +37,8 @@
     <string name="service_connected">Accessibility service connected</string>
     <string name="service_off">Accessibility service is off</string>
     <string name="service_off_detail">Auto-scroll cannot run</string>
+    <string name="service_stopped">Auto-scroll stopped working</string>
+    <string name="service_stopped_detail">Turn Pixel Scroll off and on in Settings</string>
     <string name="fix">Fix</string>
     <string name="fallback_delay">Fallback delay</string>
     <string name="fallback_delay_hint">Used when a Short\'s length can\'t be read</string>

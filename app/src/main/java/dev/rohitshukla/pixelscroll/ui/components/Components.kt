@@ -344,7 +344,8 @@ fun Footer(modifier: Modifier = Modifier) {
             .padding(start = Space.s5, end = Space.s5, top = Space.s1, bottom = Space.s1)
             .heightIn(min = Size.tap)
             .clip(RoundedCornerShape(Radius.md))
-            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.open_author_page)) {
+            // No button role: it opens a web page. The click label tells screen readers where.
+            .clickable(onClickLabel = stringResource(R.string.open_author_page)) {
                 uriHandler.openUri(AUTHOR_URL)
             },
         contentAlignment = Alignment.Center,

@@ -64,6 +64,7 @@ private const val SNACKBAR_MS = 3_000L
 fun HomeScreen(
     settings: Settings,
     serviceConnected: Boolean,
+    serviceEnabled: Boolean,
     onToggle: (Boolean) -> Unit,
     onDelayChange: (Int) -> Unit,
     onFix: () -> Unit,
@@ -110,10 +111,11 @@ fun HomeScreen(
                 if (serviceConnected) {
                     StatusRow(connected = true, title = stringResource(R.string.service_connected), detail = null, action = null)
                 } else {
+                    // On in Settings but not running: it crashed, or the phone stopped it.
                     StatusRow(
                         connected = false,
-                        title = stringResource(R.string.service_off),
-                        detail = stringResource(R.string.service_off_detail),
+                        title = stringResource(if (serviceEnabled) R.string.service_stopped else R.string.service_off),
+                        detail = stringResource(if (serviceEnabled) R.string.service_stopped_detail else R.string.service_off_detail),
                         action = { SmallSecondaryButton(stringResource(R.string.fix), onClick = onFix) },
                     )
                 }

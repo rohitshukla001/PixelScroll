@@ -35,10 +35,12 @@ enum class Screen { Welcome, Access, Home }
 @Composable
 fun PixelScrollApp(
     setupComplete: Boolean,
-    serviceConnected: Boolean,
+    serviceEnabled: Boolean,
+    serviceRunning: Boolean,
     settings: Settings,
     controller: AppController,
 ) {
+    val serviceConnected = serviceEnabled && serviceRunning
     var screen by rememberSaveable { mutableStateOf(if (setupComplete) Screen.Home else Screen.Welcome) }
     // Where Back from Accessibility access goes: Welcome during first run, else Home.
     var accessBack by rememberSaveable { mutableStateOf(Screen.Welcome) }
@@ -72,6 +74,7 @@ fun PixelScrollApp(
                 Screen.Home -> HomeScreen(
                     settings = settings,
                     serviceConnected = serviceConnected,
+                    serviceEnabled = serviceEnabled,
                     onToggle = controller::setEnabled,
                     onDelayChange = controller::setFallbackDelay,
                     onFix = { openAccess(from = Screen.Home) },

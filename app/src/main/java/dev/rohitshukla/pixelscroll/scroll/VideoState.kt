@@ -1,9 +1,12 @@
 package dev.rohitshukla.pixelscroll.scroll
 
 /**
- * What the engine knows about the Short on screen: when it started, its length, whether our
- * swipe is waiting to land, and whether to read the progress bar yet. Pure Kotlin: the caller
+ * What the engine knows about the Short on screen: its length, whether our
+ * swipe is waiting to land, and when to read the progress bar next. Pure Kotlin: the caller
  * passes in the time.
+ *
+ * Reading times follow the video's real position, not the clock, so jumping forward or back in
+ * a Short still ends in a swipe at its real end.
  */
 class VideoState {
 
@@ -15,20 +18,15 @@ class VideoState {
     var token = 0
         private set
 
-    private var startedAt = 0L
     private var swipedAt = 0L
-    private var readFromStart = false
+    private var nextReadAt = 0L
 
-    /**
-     * A new video is on screen. [readFromStart] reads progress for the whole video: use it when
-     * Shorts opens, since the first Short may already be part-way through.
-     */
-    fun start(nowMs: Long, readFromStart: Boolean = false) {
+    /** A new video is on screen. The first progress reading is due at once. */
+    fun start(nowMs: Long) {
         token++
         lengthSec = null
-        startedAt = nowMs
         swipedAt = 0L
-        this.readFromStart = readFromStart
+        nextReadAt = nowMs
     }
 
     /** Shorts closed or auto-scroll stopped: anything timed for this video must not run. */
@@ -61,15 +59,18 @@ class VideoState {
      */
     fun swipeLandedSilently(nowMs: Long): Boolean = swipedAt != 0L && nowMs - swipedAt > NO_SCROLL_EVENT_MS
 
+    /** Whether to read the progress bar now. Always, until the length is known. */
+    fun shouldReadProgress(nowMs: Long): Boolean = lengthSec == null || nowMs + READ_SLACK_MS >= nextReadAt
+
     /**
-     * Whether to read the progress bar now. With a known length, only from [READ_LEAD_MS]
-     * before the expected end: enough readings to catch the end, without copying the screen
-     * every second of the video.
+     * A progress reading ([fill], 0 to 1) arrived. Sets the next reading from where the video
+     * really is: every second from [READ_LEAD_MS] before its end, else every [SAMPLE_MS]. A jump
+     * forward or back shows up in the next sample and moves the end with it.
      */
-    fun shouldReadProgress(nowMs: Long): Boolean {
-        val length = lengthSec ?: return true
-        if (readFromStart) return true
-        return nowMs - startedAt >= length * 1000L - READ_LEAD_MS
+    fun onProgressRead(fill: Float, nowMs: Long) {
+        val lengthMs = lengthSec?.times(1000L) ?: return
+        val remainingMs = ((1f - fill.coerceIn(0f, 1f)) * lengthMs).toLong()
+        nextReadAt = if (remainingMs <= READ_LEAD_MS) nowMs else nowMs + minOf(SAMPLE_MS, remainingMs - READ_LEAD_MS)
     }
 
     /** With a known length, the fallback is the length plus one second; else the user's delay. */
@@ -80,7 +81,19 @@ class VideoState {
         /** After our swipe, wait this long for a scroll event before assuming a new video. */
         const val NO_SCROLL_EVENT_MS = 3_000L
 
-        /** Start reading the progress bar this long before a Short's expected end. */
+        /** Read the progress bar every second from this long before a Short's end. */
         const val READ_LEAD_MS = 5_000L
+
+        /**
+         * Before that, read it this often. Under ScrollDecider's 4.5 s progress timeout, so the
+         * fallback delay never fires while the bar is being read (a rewound Short isn't swiped).
+         */
+        const val SAMPLE_MS = 3_000L
+
+        /**
+         * A reading lands a few ms after its tick, so the tick that is due arrives slightly
+         * early; without this slack it would wait for the tick after, a 4 s gap.
+         */
+        const val READ_SLACK_MS = 500L
     }
 }

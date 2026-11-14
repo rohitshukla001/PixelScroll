@@ -10,9 +10,8 @@ Pixel Scroll runs an accessibility service in the background. While auto-scroll 
 | --- | --- |
 | Screen off | Checks the screen state, then stops |
 | Another app in front | Reads the name of the app in front, then stops. It does not read that app's screen |
-| YouTube, not on Shorts | Walks YouTube's screen once (view ids only), then stops |
-| YouTube Shorts, mid-Short | Walks YouTube's screen once; reads the seek bar text |
-| YouTube Shorts, last 5 s of a Short | The walk above, plus one screenshot and a progress-bar reading |
+| YouTube, not on Shorts | One search for the Shorts list, then stops. No full screen walk |
+| YouTube Shorts | The search, a full screen walk (view ids, seek bar), plus one screenshot and a progress-bar reading every 3 s; every second in the last 5 s |
 
 Auto-scroll off: the engine does not run at all.
 
@@ -34,7 +33,7 @@ The progress bar is read from a screenshot (Android 11+). Android returns the sc
 | Full-screen copy at 1080 x 2400 | about 10 MB (4 bytes per pixel) |
 | Pixels actually read | the bar's strip, about 1,000 x 20 |
 
-To keep this cost low, the engine takes screenshots only from 5 s before a Short's expected end (`VideoState.READ_LEAD_MS`). That is about 5 copies per Short, not one per second of video. The first Short after Shorts opens is read throughout, because it may already be part-way through.
+The engine takes a screenshot every 3 s, and every second in the last 5 s of a Short. The timing follows the video's real position, so it also works when you jump forward or back. For a 30 s Short that is about 13 copies instead of 30 at one per second. An earlier version read only in the last 5 s by the clock: fewer copies (about 5 per Short), but a Short you jumped forward in would replay before the swipe.
 
 Each bitmap is recycled straight after reading. When Android can't allocate the copy, the reading is skipped for that second.
 
@@ -51,7 +50,8 @@ One 250 ms gesture per Short. If Android cancels it, the engine retries once.
 | Change | Before | After |
 | --- | --- | --- |
 | App check before the screen walk | Walked every app's screen every second | Walks YouTube only |
-| Screenshot timing | One full-screen copy every second on Shorts | Only in the last 5 s of each Short |
+| Screenshot timing | One full-screen copy every second on Shorts | Every 3 s, and every second in the last 5 s; follows jumps forward and back |
+| Screen check on YouTube | Full screen walk every second | One search for the Shorts list first; full walk only on Shorts |
 | Accessibility events | Window, content and scroll events from all apps | Scroll events from YouTube only |
 | Error handling | One error could end the service | The second is skipped; status turns red after 5 errors in a row |
 

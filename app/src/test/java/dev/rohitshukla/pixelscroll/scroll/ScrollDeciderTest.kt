@@ -11,7 +11,8 @@ class ScrollDeciderTest {
     private val config = ScrollConfig(
         fallbackDelayMs = 15_000,
         endThreshold = 0.97f,
-        loopDropThreshold = 0.5f,
+        loopFromThreshold = 0.8f,
+        loopToThreshold = 0.15f,
         progressTimeoutMs = 3_000,
         minWatchMs = 1_000,
     )
@@ -110,5 +111,29 @@ class ScrollDeciderTest {
         assertEquals(Decision.Wait, decider.onTick(60_000))
         decider.onNewVideo(61_000)
         assertEquals(Decision.SwipeNow(Reason.FALLBACK_DELAY), decider.onTick(76_000))
+    }
+
+    @Test
+    fun `a rewind to the middle is not a loop`() {
+        decider.onNewVideo(0)
+        decider.onProgress(0.9f, 20_000)
+        assertEquals(Decision.Wait, decider.onProgress(0.4f, 21_000))
+        assertEquals(Decision.Wait, decider.onTick(21_000))
+    }
+
+    @Test
+    fun `a rewound Short still swipes at its real end`() {
+        decider.onNewVideo(0)
+        decider.onProgress(0.9f, 20_000)
+        decider.onProgress(0.4f, 21_000)
+        assertEquals(Decision.Wait, decider.onProgress(0.7f, 23_000))
+        assertEquals(Decision.SwipeNow(Reason.END_REACHED), decider.onProgress(0.98f, 25_000))
+    }
+
+    @Test
+    fun `a jump forward swipes at the end, not after a replay`() {
+        decider.onNewVideo(0)
+        decider.onProgress(0.1f, 2_000)
+        assertEquals(Decision.SwipeNow(Reason.END_REACHED), decider.onProgress(0.99f, 4_000))
     }
 }

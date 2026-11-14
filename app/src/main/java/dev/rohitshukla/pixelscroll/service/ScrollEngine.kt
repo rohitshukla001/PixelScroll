@@ -23,8 +23,8 @@ import dev.rohitshukla.pixelscroll.scroll.VideoState
 /**
  * The scroll engine. Once a second, while auto-scroll is on and the screen is on:
  * 1. checks the app in front is YouTube and shows Shorts;
- * 2. reads the Short's length from the seek bar and, near the end, its progress from a
- *    screenshot of the progress bar (Android 11+);
+ * 2. reads the Short's length from the seek bar and its progress from a screenshot of the
+ *    progress bar (Android 11+): every 2 s, and every second near the end;
  * 3. asks [ScrollDecider] whether to swipe, and swipes in YouTube's window.
  * A Short whose length can't be read uses the fallback delay.
  *
@@ -39,6 +39,7 @@ class ScrollEngine(
     private val power = service.getSystemService(Context.POWER_SERVICE) as PowerManager
     private val detector = TargetScreenDetector()
     private val targetPackages = TargetScreens.all.map { it.packageName }.toSet()
+    private val markerIds = TargetScreens.all.flatMap { it.markerViewIds }
     private val swipe = SwipeDispatcher(service)
     private val decider = ScrollDecider()
     private val median = MedianOfThree()
@@ -49,8 +50,15 @@ class ScrollEngine(
 
     private var activeApp: TargetApp? = null
     private var activeWindow: Rect? = null
-    private var screenshotBusy = false
+    /** When the pending screenshot was requested, or 0 when none is pending. */
+    private var screenshotSentAt = 0L
+    private var lastReadAt = 0L
+    private var lastReadFailedAt = 0L
+    private var lastRawFill: Float? = null
+    private var lastRegion: Rect? = null
     private var endSwipeTimed = false
+    /** Android refused the last swipe outright; send it again on the next tick. */
+    private var swipePending = false
     private var failedTicks = 0
 
     fun updateSettings(new: Settings) {
@@ -107,6 +115,9 @@ class ScrollEngine(
         val root = service.rootInActiveWindow ?: return deactivate()
         // Look inside YouTube only: never walk the screens of other apps.
         if (root.packageName?.toString() !in targetPackages) return deactivate()
+        // One search for the Shorts list before walking the whole screen: on YouTube's home
+        // feed or a long video, this stops at once.
+        if (markerIds.none { root.findAccessibilityNodeInfosByViewId(it).isNotEmpty() }) return deactivate()
         val scan = ScreenScan.of(root) ?: return deactivate()
         val app = detector.detect(scan.snapshot) ?: return deactivate()
 
@@ -118,21 +129,28 @@ class ScrollEngine(
         if (video.swipeLandedSilently(now)) newVideo()
         decider.config = video.config(settings.fallbackDelaySec)
 
-        handle(decider.onTick(now))
+        if (swipePending) return sendSwipe(retry = true)
+        // While screenshots fail after recent good readings, hold the fallback delay so a paused
+        // or rewound Short isn't swiped; after READ_FAILURE_HOLD_MS it applies again.
+        val readsFailing = lastReadFailedAt > lastReadAt && now - lastReadAt < READ_FAILURE_HOLD_MS
+        if (!readsFailing) handle(decider.onTick(now))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && video.shouldReadProgress(now)) readProgressBar(scan)
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun readProgressBar(scan: ScreenScan) {
-        if (screenshotBusy) return
+        val now = SystemClock.elapsedRealtime()
+        // Wait for the pending screenshot, but not for ever: Android might never answer.
+        if (screenshotSentAt != 0L && now - screenshotSentAt < SCREENSHOT_TIMEOUT_MS) return
         val region = barRegion(scan) ?: return
-        screenshotBusy = true
+        lastRegion = region
+        screenshotSentAt = now
         service.takeScreenshot(
             Display.DEFAULT_DISPLAY,
             service.mainExecutor,
             object : AccessibilityService.TakeScreenshotCallback {
                 override fun onSuccess(result: AccessibilityService.ScreenshotResult) {
-                    screenshotBusy = false
+                    screenshotSentAt = 0L
                     try {
                         onScreenshot(result, region)
                     } catch (e: Throwable) {
@@ -141,7 +159,8 @@ class ScrollEngine(
                 }
 
                 override fun onFailure(errorCode: Int) {
-                    screenshotBusy = false
+                    screenshotSentAt = 0L
+                    lastReadFailedAt = SystemClock.elapsedRealtime()
                 }
             },
         )
@@ -149,23 +168,70 @@ class ScrollEngine(
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun onScreenshot(result: AccessibilityService.ScreenshotResult, region: Rect) {
-        val fill = readFill(result, region) ?: return
+        val fill = readFill(result, region) ?: run { lastReadFailedAt = SystemClock.elapsedRealtime(); return }
         if (activeApp == null) return
+        lastReadAt = SystemClock.elapsedRealtime()
+        lastRawFill = fill
+        video.onProgressRead(fill, lastReadAt)
         val smooth = median.add(fill) ?: return
         handle(decider.onProgress(smooth, SystemClock.elapsedRealtime()))
         timeEndSwipe(fill, smooth)
     }
 
     /** Readings come once a second: when the end falls before the next one, swipe right at it. */
+    @RequiresApi(Build.VERSION_CODES.R)
     private fun timeEndSwipe(raw: Float, smooth: Float) {
         val lengthMs = video.lengthSec?.times(1000L) ?: return
         if (endSwipeTimed) return
         val delay = EndPredictor.delayToEnd(raw, smooth, lengthMs, TICK_MS) ?: return
         endSwipeTimed = true
         val token = video.token
-        handler.postDelayed({
-            if (token == video.token) handle(decider.onProgress(1f, SystemClock.elapsedRealtime()))
-        }, delay)
+        handler.postDelayed({ if (token == video.token) confirmThenSwipe(raw, token) }, delay)
+    }
+
+    /**
+     * Just before the timed swipe, one fresh reading: if the bar went back since [raw], the user
+     * rewound, so don't swipe and let the next readings time it again. If no reading can be taken
+     * now, swipe anyway: the end is due.
+     */
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun confirmThenSwipe(raw: Float, token: Int) {
+        val latest = lastRawFill
+        if (latest != null && latest < raw - REWIND_MARGIN) return run { endSwipeTimed = false }
+        val region = lastRegion
+        if (region == null || screenshotSentAt != 0L) return swipeAtEnd(token)
+        screenshotSentAt = SystemClock.elapsedRealtime()
+        service.takeScreenshot(
+            Display.DEFAULT_DISPLAY,
+            service.mainExecutor,
+            object : AccessibilityService.TakeScreenshotCallback {
+                override fun onSuccess(result: AccessibilityService.ScreenshotResult) {
+                    screenshotSentAt = 0L
+                    if (token != video.token) return
+                    val fill = try {
+                        readFill(result, region)
+                    } catch (e: Throwable) {
+                        Log.w(TAG, "Screenshot reading failed", e)
+                        null
+                    }
+                    if (fill != null && fill < raw - REWIND_MARGIN) {
+                        lastRawFill = fill
+                        endSwipeTimed = false
+                    } else {
+                        swipeAtEnd(token)
+                    }
+                }
+
+                override fun onFailure(errorCode: Int) {
+                    screenshotSentAt = 0L
+                    swipeAtEnd(token)
+                }
+            },
+        )
+    }
+
+    private fun swipeAtEnd(token: Int) {
+        if (token == video.token) handle(decider.onProgress(1f, SystemClock.elapsedRealtime()))
     }
 
     /** Where to look for the bar: its own node, else the middle band of the seek bar. */
@@ -204,18 +270,22 @@ class ScrollEngine(
         sendSwipe(retry = true)
     }
 
-    /** Sends the swipe; when Android cancels it, tries once more for the same video. */
+    /**
+     * Sends the swipe. When Android cancels it, tries once more for the same video. When Android
+     * refuses it outright, sends it again on the next tick, without restarting the video's timing.
+     */
     private fun sendSwipe(retry: Boolean) {
         val token = video.token
-        video.onSwiped(SystemClock.elapsedRealtime())
-        swipe.swipeUp(activeWindow) { completed ->
+        val accepted = swipe.swipeUp(activeWindow) { completed ->
             if (!completed && retry && token == video.token && activeApp != null) sendSwipe(retry = false)
         }
+        swipePending = !accepted
+        if (accepted) video.onSwiped(SystemClock.elapsedRealtime())
     }
 
     private fun activate(app: TargetApp) {
         activeApp = app
-        video.start(SystemClock.elapsedRealtime(), readFromStart = true)
+        video.start(SystemClock.elapsedRealtime())
         onNewVideo()
     }
 
@@ -227,12 +297,17 @@ class ScrollEngine(
     /** Resets everything that belongs to one video, after [video] has started a new one. */
     private fun onNewVideo() {
         endSwipeTimed = false
+        swipePending = false
+        lastRawFill = null
         median.reset()
         decider.onNewVideo(SystemClock.elapsedRealtime())
     }
 
     private fun deactivate() {
         if (activeApp == null) return
+        swipePending = false
+        lastRawFill = null
+        lastRegion = null
         video.clear()
         activeApp = null
         activeWindow = null
@@ -246,5 +321,14 @@ class ScrollEngine(
 
         /** After this many failed seconds in a row, report the engine as not running. */
         const val MAX_FAILED_TICKS = 5
+
+        /** Stop waiting for a screenshot answer after this long. */
+        const val SCREENSHOT_TIMEOUT_MS = 3_000L
+
+        /** Hold the fallback delay for at most this long while screenshots fail. */
+        const val READ_FAILURE_HOLD_MS = 10_000L
+
+        /** A newer reading this much lower than the one a swipe was timed from means a rewind. */
+        const val REWIND_MARGIN = 0.05f
     }
 }

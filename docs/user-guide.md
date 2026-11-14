@@ -58,6 +58,8 @@ It never:
 
 You can still swipe by hand at any time. Pixel Scroll starts timing the new Short from there.
 
+You can also jump forward or back inside a Short. Pixel Scroll follows where you are and still moves on when the Short really ends.
+
 If you pause a Short near its end, Pixel Scroll waits for you.
 
 ## The Home screen

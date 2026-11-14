@@ -7,9 +7,9 @@ package dev.rohitshukla.pixelscroll.scroll
  * The caller (the scroll engine) must:
  * - call [onNewVideo] whenever a new video starts, including after the user swipes by hand
  *   and after our own swipe lands;
- * - while it reads progress, pass a reading to [onProgress] every tick, so a paused video
- *   keeps sending the same position instead of going silent (the engine starts reading before
- *   the fallback delay is due, see [VideoState.shouldReadProgress]);
+ * - while it reads progress, pass readings to [onProgress] more often than the progress timeout, so a paused or
+ *   rewound video keeps the progress fresh and the fallback delay never fires on it (see
+ *   [VideoState.SAMPLE_MS]);
  * - call [onTick] on every tick, which drives the fixed-delay fallback.
  *
  * After it returns [Decision.SwipeNow], the decider waits until [onNewVideo] is called again,
@@ -59,7 +59,7 @@ class ScrollDecider(var config: ScrollConfig = ScrollConfig()) {
         if (nowMs - start < config.minWatchMs) return Decision.Wait
 
         return when {
-            previous != null && previous - current >= config.loopDropThreshold -> swipe(Reason.LOOPED)
+            isLoop(previous, current) -> swipe(Reason.LOOPED)
             current >= config.endThreshold -> swipe(Reason.END_REACHED)
             else -> Decision.Wait
         }
@@ -77,6 +77,13 @@ class ScrollDecider(var config: ScrollConfig = ScrollConfig()) {
         return if (nowMs - start >= config.fallbackDelayMs) swipe(Reason.FALLBACK_DELAY) else Decision.Wait
     }
 
+    /**
+     * A loop: the bar was near the end and is now near the start. A rewind (the user jumps back
+     * to watch part again) lands in the middle, so it doesn't count.
+     */
+    private fun isLoop(previous: Float?, current: Float): Boolean =
+        previous != null && previous >= config.loopFromThreshold && current <= config.loopToThreshold
+
     private fun swipe(reason: Reason): Decision {
         swiped = true
         return Decision.SwipeNow(reason)
@@ -88,10 +95,12 @@ data class ScrollConfig(
     val fallbackDelayMs: Long = 15_000,
     /** Swipe when the video is at least this far through. */
     val endThreshold: Float = 0.97f,
-    /** A drop in progress at least this big means the video looped back to the start. */
-    val loopDropThreshold: Float = 0.5f,
-    /** With no progress reading for this long, the fallback delay takes over. */
-    val progressTimeoutMs: Long = 3_000,
+    /** A loop: the reading was at least this far through ... */
+    val loopFromThreshold: Float = 0.8f,
+    /** ... and is now at most this far: back at the start. */
+    val loopToThreshold: Float = 0.15f,
+    /** With no progress reading for this long, the fallback delay takes over. Above VideoState.SAMPLE_MS. */
+    val progressTimeoutMs: Long = 4_500,
     /** Ignore end and loop signals for this long after a video starts. */
     val minWatchMs: Long = 1_000,
 )
