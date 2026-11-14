@@ -70,7 +70,7 @@ In priority order: correctness, security, reliability, performance, maintainabil
 
 ### The APK rule
 
-After every app change, run `./gradlew assembleDebug`. The `apk/` folder always holds exactly one file, `PixelScroll.apk`, built from the latest code. The owner installs it by hand.
+After every app change, run `./gradlew assembleDebug`. The `apk/` folder always holds exactly one file, `PixelScroll.apk`, built from the latest code, and it is committed with that code. This debug APK is the build users install.
 
 ## Testing the engine without YouTube
 
@@ -110,14 +110,15 @@ The test phone is a vivo I2214 on Android 16 (API 36), 1080 x 2400.
 | Issue | Status |
 | --- | --- |
 | The switch needs two tries on the vivo phone | Not reproduced on the emulator; needs the phone over USB |
-| Release signing | Needs a signing key that the owner creates and keeps; the debug APK is used until then |
+| Release signing | Not used: the owner chose the debug-signed APK. Updates must be built on the same computer |
 | Event and package filtering in the accessibility config | Checked on the emulator only (14 Nov 2026) |
 
 ## Releasing
 
 1. Raise `versionCode` by 1 and set `versionName` in `app/build.gradle.kts`.
 2. Run the full checks.
-3. Build and copy the APK (`assembleDebug`).
-4. Record what changed in the commit message; the owner commits.
+3. Build the APK: `./gradlew assembleDebug` (copies it to `apk/PixelScroll.apk`).
+4. Install it on the emulator and on the phone; check setup, Home and a few Shorts.
+5. Commit and push to `main`. The README's download link points to `apk/PixelScroll.apk` on `main`.
 
-A signed release build (`assembleRelease`) needs a keystore. Keep keystores and passwords out of the repo; `.gitignore` already excludes them.
+The APK is signed with the debug key of the computer that builds it. Android installs an update only over an app signed with the same key, so build releases on the same computer; a build from another computer needs users to uninstall first.

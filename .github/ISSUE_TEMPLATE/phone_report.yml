@@ -1,0 +1,38 @@
+name: Phone report
+description: Tell us whether Pixel Scroll works on your phone.
+labels: [phone-report]
+body:
+  - type: input
+    id: phone
+    attributes:
+      label: Phone model
+      placeholder: vivo I2214
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Android version
+      placeholder: "16"
+    validations:
+      required: true
+  - type: input
+    id: language
+    attributes:
+      label: Phone language
+      placeholder: English
+  - type: dropdown
+    id: result
+    attributes:
+      label: Does it work?
+      options:
+        - Yes, every Short moves on when it ends
+        - Partly, some Shorts move on late or replay first
+        - No, Shorts don't move on
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Setup problems, things that worked, anything odd.

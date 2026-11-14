@@ -1,4 +1,37 @@
-# Pixel Scroll
+<p align="center">
+  <img src="docs/images/logo.png" width="96" alt="Pixel Scroll logo">
+</p>
+
+<h1 align="center">Pixel Scroll</h1>
+
+<p align="center"><b>Hands-free YouTube Shorts: swipes to the next Short the moment one ends.</b></p>
+
+<p align="center">
+  <a href="https://github.com/rohitshukla001/PixelScroll/raw/main/apk/PixelScroll.apk"><b>⬇ Download the APK</b></a>
+  &nbsp;·&nbsp; Android 8.0+ &nbsp;·&nbsp; No internet permission &nbsp;·&nbsp; Free
+</p>
+
+<!-- Demo GIF goes here: docs/images/demo.gif, a 5–10 s phone recording of a Short ending and the next one sliding in. -->
+
+## Screenshots
+
+| Welcome | Accessibility access | Home |
+| --- | --- | --- |
+| <img src="docs/images/welcome.png" width="240" alt="Welcome screen with the Pixel Scroll logo and a Get started button"> | <img src="docs/images/access.png" width="240" alt="Accessibility access screen listing what the app does and never does"> | <img src="docs/images/home.png" width="240" alt="Home screen with auto-scroll on, service connected and a 15 s fallback delay"> |
+
+## Install in 3 steps
+
+1. **Download** [`PixelScroll.apk`](https://github.com/rohitshukla001/PixelScroll/raw/main/apk/PixelScroll.apk) on your Android phone.
+2. **Install** it. If Android asks, allow installs from your browser or file manager. If Google Play Protect warns about an unknown app, tap **More details**, then **Install anyway**: Pixel Scroll is not on the Play Store, and it uses an accessibility service.
+3. **Turn on access.** Open Pixel Scroll, tap **Get started**, then **Open Settings**, and turn on **Pixel Scroll** under Accessibility. On some phones the switch needs a second try.
+
+Then open YouTube Shorts and watch. The full walkthrough is in the [user guide](docs/user-guide.md).
+
+## Privacy
+
+Pixel Scroll has **no internet permission**, so it can't send anything off your phone. It collects no data, keeps no history and shows no ads. It checks which app is in front, and reads only YouTube's screen, to find the Short's length and progress bar. It never reads other apps' screens. Its only stored data is two settings: auto-scroll on or off, and the fallback delay.
+
+## What it does
 
 Pixel Scroll is an Android app that scrolls YouTube Shorts for you. It moves to the next Short when the current one ends. After setup, it shows nothing inside YouTube.
 
@@ -34,7 +67,7 @@ You need JDK 17 and the Android SDK. Android Studio installs both.
 ./gradlew assembleDebug
 ```
 
-Each debug build also copies the APK to `apk/PixelScroll.apk`, replacing the old one. That folder always holds one APK: the latest build.
+Each debug build copies the APK to `apk/PixelScroll.apk`, replacing the old one. That folder always holds one APK: the latest build.
 
 ## Docs
 

@@ -1,0 +1,65 @@
+name: Bug report
+description: Pixel Scroll does something wrong, or nothing at all.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Short, specific answers help most.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: For example, "The Short replays instead of moving on" or "It swipes too early".
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: dropdown
+    id: status-row
+    attributes:
+      label: Status row on Home when it happened
+      options:
+        - Green, "Accessibility service connected"
+        - Red, "Accessibility service is off"
+        - I didn't check
+    validations:
+      required: true
+  - type: input
+    id: phone
+    attributes:
+      label: Phone model
+      placeholder: vivo I2214
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Android version
+      placeholder: "16"
+    validations:
+      required: true
+  - type: input
+    id: language
+    attributes:
+      label: Phone language
+      placeholder: English
+  - type: input
+    id: youtube-version
+    attributes:
+      label: YouTube app version
+      description: Settings > Apps > YouTube shows it.
+  - type: input
+    id: app-version
+    attributes:
+      label: Pixel Scroll version
+      placeholder: "0.2.0"
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots or a screen recording help a lot.
