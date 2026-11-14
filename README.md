@@ -23,7 +23,7 @@ app/src/main/java/dev/rohitshukla/pixelscroll/
 ├── progress/                  Progress-bar reading and seek bar text (pure Kotlin, unit tested)
 ├── data/                      Settings (DataStore, on the phone only)
 └── ui/                        Theme, components and the three screens from the design system
-docs/                          Guides, plus the first-release history
+docs/                          User, developer, engineering and performance guides
 ```
 
 ## Build
@@ -42,8 +42,6 @@ Each debug build also copies the APK to `apk/PixelScroll.apk`, replacing the old
 - [Developer guide](docs/developer.md): how the app works inside and where to change it.
 - [Engineering handbook](docs/engineering-handbook.md): rules, workflow, checks and emulator testing.
 - [Performance](docs/performance.md): what the app costs the phone, and what is not measured yet.
-
-History from the first release: [implementation plan](docs/implementation-plan.md).
 
 ## Design
 
