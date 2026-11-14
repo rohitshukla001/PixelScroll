@@ -14,4 +14,4 @@ Install it on a phone with USB debugging on:
 adb install -r apk/PixelScroll.apk
 ```
 
-The APK is not tracked by git. To keep it in the repo, delete the `apk/*.apk` line in `.gitignore`.
+The APK is tracked by git, so the latest build is on GitHub too. Commit it together with the code it was built from.
