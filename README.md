@@ -47,6 +47,25 @@ Each debug build also copies the APK to `apk/PixelScroll.apk`, replacing the old
 
 The UI follows the Pixel Scroll "Monochrome Futuristic" design system: black, white and neutral grey, Inter type, thin borders and no shadows. The app is light only, even when the phone is in dark mode.
 
+## Disclaimer
+
+Pixel Scroll is an independent project. It is not affiliated with, endorsed by or sponsored by YouTube or Google. YouTube is a trademark of Google LLC.
+
+Pixel Scroll automates swipes in the YouTube app through Android's accessibility service. You use it at your own risk and are responsible for following YouTube's Terms of Service. The software is provided "as is", without warranty of any kind; see the [License](LICENSE).
+
+## License
+
+Copyright 2026 Rohit Shukla
+
+Pixel Scroll is licensed under [Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)](https://creativecommons.org/licenses/by-nd/4.0/). See [LICENSE](LICENSE).
+
+- You may download, install, use and share Pixel Scroll, including the APK, as long as you credit Rohit Shukla and link to the license.
+- You may not share modified versions.
+
+Pixel Scroll is source-available, not open source: you can read the code, but the license does not allow sharing changed copies.
+
+The Inter font in `app/src/main/res/font/` is licensed separately under the [SIL Open Font License 1.1](licenses/Inter-OFL.txt).
+
 ---
 
 Design and Developed by Rohit Shukla
